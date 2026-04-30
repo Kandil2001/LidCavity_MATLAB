@@ -3,13 +3,6 @@
 *.m~
 .DS_Store
 
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.ipynb_checkpoints/
-
 # General
 .vscode/
 .idea/
