@@ -394,4 +394,4 @@ Ahmed Kandil
 
 - GitHub: [Kandil2001](https://github.com/Kandil2001)
 - LinkedIn: [Ahmed Kandil](https://www.linkedin.com/in/ahmed-kandil01)
-- Email: kandil.ahmed.amr@gmail.com
+- Email: a.akandil@outlook.com
