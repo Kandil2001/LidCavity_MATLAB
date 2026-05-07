@@ -26,7 +26,9 @@ This gives a total of:
 
 The loop-based and vectorized MATLAB implementations produced matching numerical results for equivalent cases.
 
-This confirms that the vectorized implementation preserves the mathematical behavior of the reference loop solver while reducing MATLAB loop overhead.
+This confirms that the vectorized implementation preserves the mathematical behavior of the reference loop solver.
+
+This is important because it means the vectorized code was not only faster in structure, but also numerically consistent.
 
 ---
 
@@ -146,8 +148,8 @@ The MATLAB solver successfully demonstrates a complete SIMPLE-style pressure-cor
 
 The project shows:
 
-- implementation of the 2D incompressible Navier–Stokes equations,
-- pressure–velocity coupling through pressure correction,
+- implementation of the 2D incompressible Navier-Stokes equations,
+- pressure-velocity coupling through pressure correction,
 - loop and vectorized MATLAB implementations,
 - comparison of convection schemes,
 - comparison of pressure solvers,
