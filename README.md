@@ -1,4 +1,4 @@
-# Lid Cavity Evolution
+# Lid Cavity MATLAB
 
 A MATLAB CFD benchmark project for the two-dimensional incompressible lid-driven cavity problem using a SIMPLE-style pressure-correction solver.
 
