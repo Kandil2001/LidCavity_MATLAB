@@ -1,9 +1,29 @@
-# MATLAB
+# MATLAB autosave / backup files
 *.asv
 *.m~
-.DS_Store
+*.mlx~
+*.slxc
 
-# General
+# Generated MATLAB data and figures
+*.mat
+*.fig
+
+# Generated results
+results/data/*
+results/figures/*
+
+# Keep empty results folders
+!results/data/.gitkeep
+!results/figures/.gitkeep
+
+# Logs / temporary files
+*.log
+*.tmp
+
+# Editor folders
 .vscode/
 .idea/
-*.log
+
+# OS files
+.DS_Store
+Thumbs.db
