@@ -410,7 +410,7 @@ Generated output is saved in:
 results/data/
 results/figures/
 ```
-
+hia Validation: v 
 Typical generated files include:
 
 * `study_summary.csv`,
@@ -541,8 +541,3 @@ Ahmed Kandil
 * GitHub: [Kandil2001](https://github.com/Kandil2001)
 * LinkedIn: [Ahmed Kandil](https://www.linkedin.com/in/ahmed-kandil01)
 * Email: [a.akandil@outlook.com](mailto:a.akandil@outlook.com)
-
-```
-
-One note: I changed the design wording to avoid saying **“true staggered-grid”**, because your current solver is **collocated**, not staggered. This README looks professional but still stays technically correct.
-```
