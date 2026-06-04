@@ -1,0 +1,16 @@
+# Normalize text files
+* text=auto
+
+# MATLAB files
+*.m text eol=lf
+
+# Markdown files
+*.md text eol=lf
+
+# Binary figures
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.fig binary
+*.mat binary
