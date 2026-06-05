@@ -8,14 +8,9 @@ The domain is a unit square filled with an incompressible fluid. The top wall mo
 
 The non-dimensional governing equations are:
 
-```math
-\nabla \cdot \mathbf{u} = 0
-```
-
-```math
-\frac{\partial \mathbf{u}}{\partial t}
-+ (\mathbf{u}\cdot\nabla)\mathbf{u}
-= -\nabla p + \frac{1}{Re}\nabla^2\mathbf{u}
+```text
+Continuity:         ∇ · u = 0
+Momentum equation:  ∂u/∂t + (u · ∇)u = −∇p + (1/Re)∇²u
 ```
 
 The Reynolds number is based on the lid velocity and cavity length.
