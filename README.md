@@ -1,8 +1,12 @@
 # Lid-Driven Cavity Flow Solver in MATLAB
 
-[![MATLAB](https://img.shields.io/badge/MATLAB-base%20MATLAB-orange.svg)](https://www.mathworks.com/products/matlab.html)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Portfolio](https://img.shields.io/badge/Portfolio-kandil2001.github.io-2ea44f.svg)](https://kandil2001.github.io/)
+<p align="center">
+  <img src="https://img.shields.io/badge/MATLAB-base%20MATLAB-orange.svg" alt="MATLAB">
+  <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License">
+  <a href="https://kandil2001.github.io/">
+    <img src="https://img.shields.io/badge/Portfolio-kandil2001.github.io-2ea44f.svg" alt="Portfolio">
+  </a>
+</p>
 
 This repository contains my MATLAB implementation of the two-dimensional incompressible lid-driven cavity problem. I built it to work directly with the numerical method instead of only using a ready-made CFD solver.
 
@@ -94,7 +98,7 @@ results/       generated output; ignored by Git
 
 This is a learning solver, not a replacement for a production CFD package. The current version uses a collocated grid without Rhie-Chow interpolation and an iterative pressure solver without multigrid acceleration. The convergence settings also need further work, as shown by the cases reaching `maxIter`.
 
-The next steps I plan to explore are a stronger pressure-velocity treatment, a faster pressure solver, and a dedicated grid-independence study.
+Useful next steps include a stronger pressure-velocity treatment, a faster pressure solver, and a dedicated grid-independence study.
 
 ## Reference
 
