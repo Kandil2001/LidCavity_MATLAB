@@ -57,7 +57,7 @@ studies/run_single_case.m
 
 The mesh, Reynolds number, convection scheme, pressure solver, and implementation are defined near the top of the file.
 
-`studies/run_best_validation_case.m` runs the representative `N = 64`, `Re = 100`, central-differencing case shown in the README.
+`studies/run_representative_case.m` runs the `N = 64`, `Re = 100`, central-differencing case shown in the README.
 
 ## Changing the setup
 
