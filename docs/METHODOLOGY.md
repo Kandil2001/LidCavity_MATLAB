@@ -1,206 +1,85 @@
 # Methodology
 
-## Governing Equations
+This note describes the numerical choices used in the solver and the reasoning behind the comparisons in the study.
 
-The solver models two-dimensional incompressible Newtonian flow.
+## Problem setup
 
-The continuity equation is:
+The domain is a unit square filled with an incompressible fluid. The top wall moves from left to right with a non-dimensional speed of `1`, while the other three walls are stationary. No-slip and no-penetration conditions are applied at every wall.
+
+The non-dimensional governing equations are:
 
 ```math
 \nabla \cdot \mathbf{u} = 0
 ```
 
-The incompressible Navier-Stokes equations are:
-
 ```math
 \frac{\partial \mathbf{u}}{\partial t}
-+
-(\mathbf{u}\cdot\nabla)\mathbf{u}
-=
--\nabla p
-+
-\frac{1}{Re}\nabla^2 \mathbf{u}
++ (\mathbf{u}\cdot\nabla)\mathbf{u}
+= -\nabla p + \frac{1}{Re}\nabla^2\mathbf{u}
 ```
 
-where:
+The Reynolds number is based on the lid velocity and cavity length.
 
-- `u` and `v` are the velocity components,
-- `p` is pressure,
-- `Re` is the Reynolds number.
+## Grid and discretization
 
----
+The code uses a structured Cartesian collocated grid. Velocity and pressure are stored at the same grid locations. Spatial derivatives are calculated with finite differences.
 
-## Numerical Formulation
+Two convection schemes are available:
 
-The project uses a collocated structured Cartesian grid and a finite-difference pressure-correction formulation.
+- **Upwind:** more robust on coarse meshes, but adds numerical diffusion.
+- **Central:** less diffusive and usually closer to the benchmark on a sufficiently fine mesh, but more sensitive to under-resolution.
 
-The solver is written for clarity and study purposes. It is not intended to replace a commercial finite-volume CFD code.
+Diffusion and pressure gradients use central differences.
 
----
+## Pressure-correction loop
 
-## Pressure-Velocity Coupling
+The solver follows a SIMPLE-style pressure-correction sequence:
 
-The solver uses a SIMPLE-style pressure-correction procedure.
+1. Apply the velocity boundary conditions.
+2. Predict intermediate velocities from the momentum equations.
+3. Calculate the divergence of the predicted field.
+4. Solve the pressure-correction Poisson equation.
+5. Correct the velocity field.
+6. Update pressure with under-relaxation.
+7. Calculate residuals and repeat.
 
-The steps are:
+The momentum predictor is available in two forms. `momentum_predictor_loop.m` is easier to follow cell by cell, while `momentum_predictor_vectorized.m` performs the same calculation using MATLAB array operations. Keeping both versions made it possible to check numerical consistency and compare runtime.
 
-1. initialize velocity and pressure,
-2. apply lid-driven cavity boundary conditions,
-3. predict intermediate velocities from the momentum equations,
-4. compute the divergence of the predicted velocity field,
-5. solve the pressure correction Poisson equation,
-6. correct the velocity field,
-7. update pressure using under-relaxation,
-8. compute residuals,
-9. repeat until convergence or maximum iteration count.
+## Pressure solvers
 
----
+The pressure-correction equation can be solved with:
 
-## Momentum Predictor
+- `RBGS`: red-black Gauss-Seidel
+- `RBSOR`: red-black successive over-relaxation
 
-The momentum predictor computes intermediate velocities:
+RBSOR uses an automatically estimated relaxation factor, limited to a safe range in `default_config.m`. The pressure solver checks the residual of the Poisson equation rather than only checking how much the pressure correction changed between iterations.
 
-```math
-\mathbf{u}^{*}
-=
-\mathbf{u}^{n}
-+
-\Delta t
-\left[
--(\mathbf{u}\cdot\nabla)\mathbf{u}
--\nabla p
-+
-\frac{1}{Re}\nabla^2\mathbf{u}
-\right]
-```
+## Time step and relaxation
 
-The code includes two implementations:
+Although the target problem is steady, the code advances through pseudo-time steps. The time step is limited by convection, diffusion, and a configured maximum value. Velocity and pressure relaxation factors are also set in `default_config.m`.
 
-- loop-based implementation,
-- vectorized MATLAB implementation.
+These settings were chosen to keep the broad parameter study stable. They are not claimed to be optimal for every mesh and Reynolds number.
 
-Both implementations solve the same numerical equations.
+## Residuals and stopping criteria
 
----
+The code records:
 
-## Pressure Correction
+- changes in the horizontal and vertical velocity fields,
+- a normalized mass-imbalance residual,
+- raw velocity divergence,
+- pressure-solver iterations and relative residuals.
 
-The pressure correction equation is:
+The mass residual and velocity residuals are used for the outer convergence check. Raw divergence is kept as an additional diagnostic.
 
-```math
-\nabla^2 p'
-=
-\frac{1}{\Delta t}
-\nabla \cdot \mathbf{u}^{*}
-```
+## Validation
 
-where `p'` is the pressure correction.
+For `Re = 100`, `400`, and `1000`, the computed centerline velocities are interpolated to the locations reported by Ghia et al. The code then calculates L2 and maximum errors for:
 
-The corrected velocity is:
+- `u(y)` at `x = 0.5`
+- `v(x)` at `y = 0.5`
 
-```math
-\mathbf{u}^{n+1}
-=
-\mathbf{u}^{*}
--
-\Delta t \nabla p'
-```
+The validation thresholds are study-specific values stored in `default_config.m`. See [VALIDATION.md](VALIDATION.md) for how I interpret them.
 
-The pressure update is:
+## Scope of the method
 
-```math
-p^{n+1}
-=
-p^n
-+
-\alpha_p p'
-```
-
-where `αp` is the pressure under-relaxation factor.
-
----
-
-## Convection Schemes
-
-Two convection schemes are implemented.
-
-### Upwind Scheme
-
-The upwind scheme uses information from the upstream direction.
-
-Advantages:
-
-- more stable,
-- more robust on coarse meshes,
-- useful at higher Reynolds numbers.
-
-Disadvantages:
-
-- more numerically diffusive,
-- may reduce benchmark accuracy.
-
-### Central Scheme
-
-The central scheme uses neighboring values symmetrically.
-
-Advantages:
-
-- less numerical diffusion,
-- better accuracy on sufficiently refined meshes.
-
-Disadvantages:
-
-- less robust on coarse meshes,
-- more sensitive at high Reynolds numbers.
-
----
-
-## Pressure Solvers
-
-The pressure Poisson equation is solved using:
-
-| Solver | Description |
-|---|---|
-| `RBGS` | Red-black Gauss-Seidel |
-| `RBSOR` | Red-black Successive Over-Relaxation |
-
-`RBSOR` is usually faster because it applies over-relaxation to accelerate convergence.
-
----
-
-## Residuals
-
-The solver monitors:
-
-| Residual | Meaning |
-|---|---|
-| `FinalRu` | Final horizontal velocity residual |
-| `FinalRv` | Final vertical velocity residual |
-| `FinalRcMass` | Normalized continuity / mass residual |
-| `FinalRcDiv` | Raw divergence residual |
-| `AvgPoissonIterations` | Average pressure iterations |
-| `PressureSaturationRatio` | Fraction of pressure solves reaching max iterations |
-
-The normalized mass residual is the most useful continuity indicator for comparing cases with different mesh sizes.
-
----
-
-## Validation Method
-
-The numerical solution is compared against Ghia et al. benchmark data using:
-
-- vertical centerline velocity `u(y)` at `x = 0.5`,
-- horizontal centerline velocity `v(x)` at `y = 0.5`.
-
-The error is reported as:
-
-- `Ghia_u_L2`,
-- `Ghia_v_L2`,
-- `Ghia_u_Linf`,
-- `Ghia_v_Linf`.
-
----
-
-## Important Note
-
-The method is suitable for learning and numerical comparison. For industrial-grade collocated finite-volume SIMPLE solvers, Rhie-Chow interpolation and stronger pressure-velocity coupling treatment would normally be added.
+The code is useful for studying pressure correction, numerical diffusion, mesh effects, and MATLAB performance. It is not intended to reproduce all features of a production finite-volume solver. In particular, the collocated formulation does not include Rhie-Chow interpolation, and the pressure solver is iterative but not multigrid-accelerated.
