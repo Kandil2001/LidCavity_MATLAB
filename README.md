@@ -80,7 +80,7 @@ main_medium   % intermediate study
 main          % full 72-case study
 ```
 
-The full study can take a long time, especially for `N = 128` and RBGS cases. Generated data and figures are written to `results/data/` and `results/figures/`. More details are in [docs/RUNNING.md](docs/RUNNING.md).
+The full study can take a long time, especially for `N = 128` and RBGS cases. Generated data and figures are written to `result/data/` and `result/figures/`. More details are in [docs/RUNNING.md](docs/RUNNING.md).
 
 ## Repository structure
 
@@ -89,9 +89,9 @@ core/          numerical routines
 studies/       single-case and parameter-study runners
 validation/    Ghia data and error calculation
 post/          plotting and result export
-assets/        selected figures and the published study summary
-docs/          method, results, validation, and run notes
-results/       generated output; ignored by Git
+assets/        selected figures and published summary data
+docs/          methodology, results, validation, and running notes
+result/        generated output; ignored by Git
 ```
 
 ## Notes and limitations
