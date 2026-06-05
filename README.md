@@ -1,55 +1,43 @@
-# Lid-Driven Cavity CFD Solver in MATLAB
+# Lid-Driven Cavity Flow Solver in MATLAB
 
-[![MATLAB](https://img.shields.io/badge/MATLAB-R2022b%2B-orange.svg)](https://www.mathworks.com/products/matlab.html)
+[![MATLAB](https://img.shields.io/badge/MATLAB-base%20MATLAB-orange.svg)](https://www.mathworks.com/products/matlab.html)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![CFD](https://img.shields.io/badge/CFD-Lid--Driven%20Cavity-informational.svg)](#)
-[![Numerical Methods](https://img.shields.io/badge/Numerical%20Methods-SIMPLE%20Pressure%20Correction-success.svg)](#)
 
-A MATLAB CFD benchmark project for the **2D incompressible lid-driven cavity** problem using a SIMPLE-style pressure-correction solver.
+I built this project to get closer to the numerical side of CFD instead of treating the solver as a black box. It solves the two-dimensional incompressible lid-driven cavity problem with a pressure-correction method and compares several implementation choices.
 
-The project focuses on learning and documenting CFD from the numerical-method level: discretization, pressure-velocity coupling, residual monitoring, pressure-solver behavior, mesh sensitivity, scheme comparison, and validation against benchmark data.
+The repository includes a loop-based and a vectorized momentum predictor, upwind and central differencing, two pressure solvers, a mesh/Reynolds-number study, and validation against the centerline data published by Ghia et al.
 
 <p align="center">
-  <img src="assets/figures/readme_overview.png" alt="Lid-driven cavity MATLAB CFD solver overview" width="900">
+  <img src="assets/figures/readme_overview.png" alt="Overview of the MATLAB lid-driven cavity results" width="900">
 </p>
 
----
+## What is included
 
-## Why this project matters
+- SIMPLE-style pressure-velocity coupling on a structured collocated grid
+- Loop-based and vectorized MATLAB momentum predictors
+- Upwind and central convection schemes
+- Red-black Gauss-Seidel (`RBGS`) and red-black SOR (`RBSOR`) pressure solvers
+- Meshes `N = 32, 64, 128`
+- Reynolds numbers `Re = 100, 400, 1000`
+- Centerline validation against Ghia et al.
+- Automatic plots and a CSV summary for the full study
 
-The lid-driven cavity is a classical CFD benchmark because it looks simple but tests several important parts of an incompressible-flow solver:
+The full parameter study contains 72 cases:
 
-- pressure-velocity coupling,
-- no-slip wall boundary conditions,
-- vortex formation,
-- Reynolds-number dependence,
-- mesh sensitivity,
-- numerical diffusion versus stability,
-- validation using centerline velocity profiles.
+```text
+3 meshes × 3 Reynolds numbers × 2 schemes × 2 pressure solvers × 2 implementations
+```
 
-This repository is intended as a clean portfolio-style CFD project rather than only a collection of MATLAB scripts.
+## A representative case
 
----
+The figures below are from `N = 64`, `Re = 100`, central differencing, RBGS, and the vectorized momentum predictor.
 
-## Highlights
-
-| Category | Implementation |
+| Flow field | Centerline validation |
 |---|---|
-| Problem | 2D incompressible lid-driven cavity |
-| Method | SIMPLE-style pressure correction |
-| Grid | Structured Cartesian collocated grid |
-| Momentum predictor | Loop-based and vectorized MATLAB versions |
-| Convection schemes | Upwind and central differencing |
-| Pressure solvers | Red-Black Gauss-Seidel and Red-Black SOR |
-| Study size | 72 cases |
-| Meshes | `N = 32, 64, 128` |
-| Reynolds numbers | `Re = 100, 400, 1000` |
-| Validation | Ghia et al. centerline benchmark data |
-| Toolboxes | Base MATLAB only for the included solver and plotting scripts |
+| ![Streamlines](assets/figures/case_029_N64_Re100_central_RBGS_vectorized_streamlines.png) | ![Ghia u validation](assets/figures/case_029_N64_Re100_central_RBGS_vectorized_ghia_u.png) |
+| ![Velocity magnitude](assets/figures/case_029_N64_Re100_central_RBGS_vectorized_speed.png) | ![Ghia v validation](assets/figures/case_029_N64_Re100_central_RBGS_vectorized_ghia_v.png) |
 
----
-
-## Numerical model
+## Numerical approach
 
 The solver uses the non-dimensional incompressible Navier-Stokes equations:
 
@@ -59,320 +47,90 @@ The solver uses the non-dimensional incompressible Navier-Stokes equations:
 
 ```math
 \frac{\partial \mathbf{u}}{\partial t}
-+
-(\mathbf{u}\cdot\nabla)\mathbf{u}
-=
--\nabla p
-+
-\frac{1}{Re}\nabla^2 \mathbf{u}
++ (\mathbf{u}\cdot\nabla)\mathbf{u}
+= -\nabla p + \frac{1}{Re}\nabla^2 \mathbf{u}
 ```
 
-where `u` and `v` are the velocity components, `p` is pressure, and `Re` is the Reynolds number.
+At each outer iteration, the code predicts a velocity field, solves a Poisson equation for the pressure correction, corrects the velocity, and checks the velocity and continuity residuals. More detail is available in [docs/METHODOLOGY.md](docs/METHODOLOGY.md).
 
-The top lid moves with a non-dimensional velocity of `U_lid = 1`. The other walls are stationary no-slip boundaries.
+## What I found
 
----
+The full study completed and produced results for all 72 cases. A few points stood out:
 
-## Solver workflow
+- `44/72` cases met the selected Ghia centerline-error thresholds.
+- All 72 cases reached their configured outer-iteration limit before meeting the strict convergence tolerances. I keep this visible in the summary rather than presenting the cases as fully converged.
+- The finer `N = 128` mesh met the selected validation thresholds for all tested combinations, while coarse high-Reynolds-number cases showed the expected loss of accuracy.
+- RBSOR reduced the average pressure-solver iterations substantially compared with RBGS and had the largest effect on total runtime.
+- Vectorizing the momentum predictor alone gave only a small overall runtime improvement because the pressure solve remained the main cost.
 
-For each case, the solver performs the following process:
+These results use the thresholds defined in `default_config.m`; they should be read as a comparison within this study, not as proof of full validation.
 
-1. initialize velocity and pressure,
-2. apply lid-driven cavity boundary conditions,
-3. predict intermediate velocity from the momentum equations,
-4. compute the divergence of the predicted velocity,
-5. solve the pressure-correction Poisson equation,
-6. correct the velocity field,
-7. update pressure using under-relaxation,
-8. compute velocity and mass residuals,
-9. repeat until the convergence criteria or maximum iteration limit is reached.
+![Pressure solver comparison](assets/figures/study_pressure_solver_iterations.png)
 
-The project stores both a normalized finite-volume-style mass residual and a raw divergence diagnostic. This makes the convergence history easier to interpret across different mesh sizes.
+A more detailed discussion is in [docs/RESULTS.md](docs/RESULTS.md).
 
----
+## Running the code
 
-## Study matrix
+Start from the repository root in MATLAB.
 
-The full study consists of:
-
-```text
-3 meshes × 3 Reynolds numbers × 2 schemes × 2 pressure solvers × 2 implementations = 72 simulations
-```
-
-| Parameter | Values |
-|---|---|
-| Mesh size | `32`, `64`, `128` |
-| Reynolds number | `100`, `400`, `1000` |
-| Convection scheme | `upwind`, `central` |
-| Pressure solver | `RBGS`, `RBSOR` |
-| Implementation | `loop`, `vectorized` |
-
----
-
-## Representative results
-
-The selected figures below are included in `assets/figures/` so the repository remains lightweight while still showing the output quality.
-
-### Velocity magnitude
-
-![Velocity magnitude](assets/figures/case_029_N64_Re100_central_RBGS_vectorized_speed.png)
-
-### Streamlines
-
-![Streamlines](assets/figures/case_029_N64_Re100_central_RBGS_vectorized_streamlines.png)
-
-### Residual history
-
-![Residual history](assets/figures/case_029_N64_Re100_central_RBGS_vectorized_residuals.png)
-
-### Pressure field
-
-![Pressure field](assets/figures/case_029_N64_Re100_central_RBGS_vectorized_pressure.png)
-
-### Vorticity field
-
-![Vorticity field](assets/figures/case_029_N64_Re100_central_RBGS_vectorized_vorticity.png)
-
----
-
-## Validation against Ghia et al.
-
-The solver is compared with the classical centerline benchmark data from Ghia, Ghia, and Shin for:
-
-- `u(y)` along the vertical centerline at `x = 0.5`,
-- `v(x)` along the horizontal centerline at `y = 0.5`.
-
-Validation data is included for `Re = 100`, `Re = 400`, and `Re = 1000`.
-
-### Example centerline validation
-
-![Ghia u validation](assets/figures/case_029_N64_Re100_central_RBGS_vectorized_ghia_u.png)
-
-![Ghia v validation](assets/figures/case_029_N64_Re100_central_RBGS_vectorized_ghia_v.png)
-
----
-
-## Study-level comparison plots
-
-### Runtime comparison
-
-![Runtime comparison](assets/figures/study_runtime_implementation.png)
-
-### Pressure-solver iteration comparison
-
-![Pressure-solver comparison](assets/figures/study_pressure_solver_iterations.png)
-
-### Validation error comparison
-
-![Ghia error comparison](assets/figures/study_ghia_error.png)
-
-### Final mass residual comparison
-
-![Final mass residual](assets/figures/study_final_mass_residual.png)
-
----
-
-## Main observations from the study
-
-Based on the generated summary data in `assets/data/study_summary.csv`:
-
-- The project ran the full 72-case study.
-- 44 cases passed the selected Ghia validation thresholds.
-- The remaining cases are kept in the summary because they are useful for understanding under-resolution, numerical diffusion, and solver limitations.
-- RBSOR reduced pressure-solver cost significantly compared with RBGS in the tested cases.
-- Central differencing gave better benchmark agreement when the mesh was sufficiently resolved.
-- Upwind differencing was more robust but more diffusive, especially on coarse grids.
-- Higher Reynolds-number cases require stronger mesh resolution to capture the velocity profiles accurately.
-
-Many cases reached the configured maximum outer iteration limit. For that reason, the repository uses honest labels such as `validated_but_not_converged` instead of claiming that every case is fully converged.
-
----
-
-## Repository structure
-
-```text
-LidCavity_MATLAB/
-├── README.md
-├── LICENSE
-├── CITATION.cff
-├── .gitignore
-├── .gitattributes
-│
-├── main.m                 # Full 72-case study
-├── main_medium.m          # Intermediate study
-├── main_quick.m           # Smaller quick test study
-├── default_config.m       # Central configuration
-│
-├── core/                  # Solver, pressure correction, residuals, boundary conditions
-├── studies/               # Case runners and study automation
-├── validation/            # Ghia benchmark data and validation functions
-├── post/                  # Plotting and result export
-├── docs/                  # Methodology and project documentation
-├── assets/                # Selected GitHub figures and summary data
-└── results/               # Generated output folders; contents ignored by Git
-```
-
-More details are available in [`docs/REPOSITORY_STRUCTURE.md`](docs/REPOSITORY_STRUCTURE.md).
-
----
-
-## How to run
-
-### Option 1: Quick run
-
-Use this first after cloning the repository.
-
-```bash
-chmod +x run_quick.sh
-./run_quick.sh
-```
-
-or inside MATLAB:
+For a smaller check:
 
 ```matlab
 main_quick
 ```
 
-### Option 2: Medium run
-
-```bash
-chmod +x run_medium.sh
-./run_medium.sh
-```
-
-or inside MATLAB:
+For the intermediate study:
 
 ```matlab
 main_medium
 ```
 
-### Option 3: Full study
-
-```bash
-chmod +x run.sh
-./run.sh
-```
-
-or inside MATLAB:
+For the full 72-case study:
 
 ```matlab
 main
 ```
 
-The full study may take a long time because it runs 72 cases and includes fine-grid simulations.
+Linux shell wrappers are also included as `run_quick.sh`, `run_medium.sh`, and `run.sh`.
 
----
-
-## Output folders
-
-Generated output is written to:
+Generated files are written to:
 
 ```text
 results/data/
 results/figures/
 ```
 
-Typical generated files include:
+The full study can take a long time, especially for the `N = 128` cases and the RBGS pressure solver. See [docs/RUNNING.md](docs/RUNNING.md) for the available run modes and common issues.
 
-- `study_summary.csv`,
-- residual plots,
-- velocity magnitude plots,
-- pressure contours,
-- streamline plots,
-- vorticity plots,
-- Ghia validation plots,
-- study-level comparison plots.
+## Repository layout
 
-The generated `results/` contents are ignored by Git to keep the repository clean. Selected figures for the README are stored under `assets/figures/`.
+```text
+LidCavity_MATLAB/
+├── core/          solver and numerical routines
+├── studies/       single-case and parameter-study runners
+├── validation/    Ghia data and error calculation
+├── post/          plotting and result export
+├── assets/        selected figures and the published study summary
+├── docs/          methodology, validation, results, and run notes
+├── results/       generated output; ignored by Git
+├── default_config.m
+├── main_quick.m
+├── main_medium.m
+└── main.m
+```
 
----
+## Current limitations
 
-## Summary table columns
+This is a learning and comparison solver, not an industrial CFD package. The current implementation uses a collocated grid without Rhie-Chow interpolation, has no multigrid pressure solver, and does not include turbulence modelling or adaptive mesh refinement. The strict stopping criteria also need more work, as shown by the cases reaching the iteration limit.
 
-The generated study summary includes columns such as:
+The next improvements I would make are a better pressure-velocity treatment, a faster pressure solver, and a clearer grid-independence study.
 
-| Column | Meaning |
-|---|---|
-| `Implementation` | Loop or vectorized solver |
-| `N` | Mesh resolution |
-| `Re` | Reynolds number |
-| `Scheme` | Upwind or central differencing |
-| `PressureSolver` | RBGS or RBSOR |
-| `Status` | Solver stopping status |
-| `Quality` | Human-readable quality label |
-| `FinalRu`, `FinalRv` | Final velocity residuals |
-| `FinalRcMass` | Normalized mass residual |
-| `FinalRcDiv` | Raw divergence diagnostic |
-| `Runtime_s` | Runtime in seconds |
-| `AvgPoissonIterations` | Average pressure iterations per outer iteration |
-| `PressureSaturationRatio` | Fraction of pressure solves reaching the pressure-iteration limit |
-| `Ghia_u_L2`, `Ghia_v_L2` | Centerline L2 validation errors |
-| `ValidationPass` | Whether the case passed the selected benchmark tolerance |
+## Reference
 
----
-
-## Known limitations
-
-This is an educational and portfolio-style MATLAB CFD solver. Current limitations include:
-
-- collocated finite-difference formulation,
-- no Rhie-Chow interpolation,
-- no turbulence model,
-- no adaptive mesh refinement,
-- no multigrid pressure solver,
-- high-Reynolds-number cases are sensitive to mesh resolution,
-- the implementation prioritizes clarity and comparison over maximum performance.
-
-These limitations are intentionally documented because they are part of the numerical learning process.
-
----
-
-## Documentation
-
-| Document | Purpose |
-|---|---|
-| [`docs/WHAT_THIS_PROJECT_DOES.md`](docs/WHAT_THIS_PROJECT_DOES.md) | Beginner-friendly project overview |
-| [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md) | Governing equations and numerical method |
-| [`docs/VALIDATION.md`](docs/VALIDATION.md) | Ghia benchmark validation notes |
-| [`docs/RESULTS_DISCUSSION.md`](docs/RESULTS_DISCUSSION.md) | Interpretation of numerical results |
-| [`docs/RUN_MODES.md`](docs/RUN_MODES.md) | Quick, medium, and full run modes |
-| [`docs/OUTPUTS_AND_UPLOAD_GUIDE.md`](docs/OUTPUTS_AND_UPLOAD_GUIDE.md) | What to commit and what to ignore |
-| [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | Common MATLAB and workflow issues |
-| [`docs/LINKEDIN_POST.md`](docs/LINKEDIN_POST.md) | LinkedIn post draft for this project |
-| [`docs/PORTFOLIO_SUMMARY.md`](docs/PORTFOLIO_SUMMARY.md) | Short website/CV project summary |
-
----
-
-## References
-
-1. Ghia, U., Ghia, K. N., and Shin, C. T.  
-   *High-Re solutions for incompressible flow using the Navier-Stokes equations and a multigrid method.*  
-   Journal of Computational Physics, 48(3), 387-411, 1982.
-
-2. Patankar, S. V.  
-   *Numerical Heat Transfer and Fluid Flow.*  
-   Hemisphere Publishing, 1980.
-
-3. Ferziger, J. H., Peric, M., and Street, R. L.  
-   *Computational Methods for Fluid Dynamics.*  
-   Springer, 2002.
-
-4. Versteeg, H. K., and Malalasekera, W.  
-   *An Introduction to Computational Fluid Dynamics: The Finite Volume Method.*  
-   Pearson, 2007.
-
----
-
-## License
-
-This project is released under the MIT License. See [`LICENSE`](LICENSE) for details.
-
----
+Ghia, U., Ghia, K. N., & Shin, C. T. (1982). *High-Re solutions for incompressible flow using the Navier-Stokes equations and a multigrid method*. Journal of Computational Physics, 48(3), 387–411.
 
 ## Author
 
-**Ahmed Kandil**
+Ahmed Kandil — [GitHub](https://github.com/Kandil2001) · [LinkedIn](https://www.linkedin.com/in/ahmed-kandil03/)
 
-- GitHub: [Kandil2001](https://github.com/Kandil2001)
-- LinkedIn: [Ahmed Kandil](https://www.linkedin.com/in/ahmed-kandil01)
-- Email: a.akandil@outlook.com
+Released under the [MIT License](LICENSE).
