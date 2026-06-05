@@ -1,14 +1,8 @@
 function result = solve_lid_cavity(N,Re,scheme,pressure_solver,implementation,cfg)
-%SOLVE_LID_CAVITY Full 2D incompressible Navier-Stokes pressure correction.
+%SOLVE_LID_CAVITY Solve one lid-driven cavity case with pressure correction.
 %
-% Validated convergence version.
-%
-% Improvements over the previous version:
-%   - mesh/Re/scheme-aware max iteration limit
-%   - true Poisson residual diagnostics
-%   - normalized finite-volume mass residual
-%   - pressure saturation ratio output
-%   - cleaner convergence status
+% The output includes the flow fields, residual histories, pressure-solver
+% diagnostics, runtime, and stopping status.
 
 implementation = lower(string(implementation));
 scheme = lower(string(scheme));
@@ -101,7 +95,7 @@ for iter = 1:localMaxIter
         break;
     end
 
-    % Detect stagnation, but do not stop early. It is recorded through status.
+    % Track slow residual reduction as a diagnostic; do not stop early.
     if Rc_mass(iter) > 0.995*prev_mass
         stagnation_counter = stagnation_counter + 1;
     else
@@ -109,8 +103,8 @@ for iter = 1:localMaxIter
     end
     prev_mass = Rc_mass(iter);
 
-    % Convergence gate:
-    % mass residual is primary; raw divergence is diagnostic.
+    % Use the mass and velocity residuals for the outer stopping check.
+    % Raw divergence is stored as an additional diagnostic.
     if Rc_mass(iter) < cfg.tol_mass && max(Ru(iter),Rv(iter)) < cfg.tol_velocity
         status = "converged";
         break;
