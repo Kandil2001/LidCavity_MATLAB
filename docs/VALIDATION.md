@@ -1,117 +1,43 @@
-# Validation
+# Validation against Ghia et al.
 
-## Purpose
+The solver is compared with the lid-driven cavity benchmark published by Ghia, Ghia, and Shin in 1982. Their centerline velocity data is widely used to check incompressible cavity-flow solvers.
 
-Validation checks whether the solver produces physically meaningful results by comparing it against established benchmark data.
+## Profiles used
 
-For this project, the reference data comes from:
+The repository includes data for `Re = 100`, `400`, and `1000`. Two profiles are compared:
 
-> Ghia, U., Ghia, K. N., and Shin, C. T.  
-> High-Re solutions for incompressible flow using the Navier-Stokes equations and a multigrid method.  
-> Journal of Computational Physics, 48(3), 387-411, 1982.
+- horizontal velocity `u(y)` along the vertical centreline, `x = 0.5`
+- vertical velocity `v(x)` along the horizontal centreline, `y = 0.5`
 
----
+The reference values are stored in `validation/ghia_data.m`. `validation/validate_against_ghia.m` interpolates the computed profiles to the reference locations and calculates L2 and maximum absolute errors.
 
-## Validation Data
+## Reported metrics
 
-The project includes Ghia benchmark data for:
-
-```text
-Re = 100
-Re = 400
-Re = 1000
-```
-
-The validation uses two centerline profiles:
-
-1. vertical centerline velocity:
-   ```text
-   u(y) at x = 0.5
-   ```
-
-2. horizontal centerline velocity:
-   ```text
-   v(x) at y = 0.5
-   ```
-
----
-
-## Validation Files
-
-The validation is handled by:
-
-```text
-validation/ghia_data.m
-validation/validate_against_ghia.m
-```
-
-### `ghia_data.m`
-
-Stores the benchmark centerline data.
-
-### `validate_against_ghia.m`
-
-Interpolates the numerical solution onto the benchmark sample points and computes error metrics.
-
----
-
-## Validation Metrics
-
-The summary table reports:
-
-| Metric | Meaning |
+| Field in the summary | Meaning |
 |---|---|
-| `Ghia_u_L2` | L2 error for vertical centerline `u(y)` |
-| `Ghia_v_L2` | L2 error for horizontal centerline `v(x)` |
-| `Ghia_u_Linf` | Maximum absolute error for `u(y)` |
-| `Ghia_v_Linf` | Maximum absolute error for `v(x)` |
-| `ValidationPass` | Whether the case passes the selected validation tolerance |
+| `Ghia_u_L2` | L2 error of the vertical-centreline `u` profile |
+| `Ghia_v_L2` | L2 error of the horizontal-centreline `v` profile |
+| `Ghia_u_Linf` | Maximum absolute error in the `u` profile |
+| `Ghia_v_Linf` | Maximum absolute error in the `v` profile |
+| `ValidationPass` | Whether both L2 errors are below the selected study thresholds |
 
----
+## About the pass/fail thresholds
 
-## How to Interpret Validation
+The pass limits in `default_config.m` are practical thresholds chosen for this study. They are useful for sorting the 72 cases and identifying trends, but they are not a formal verification or grid-independence criterion.
 
-A validation error should be interpreted together with mesh size and Reynolds number.
+A case can meet the centerline-error threshold while still reaching the maximum outer iteration count. For that reason, the summary reports `Status` and `ValidationPass` separately. Both should be checked before drawing conclusions from a case.
 
-### Low Reynolds Number
+## Interpreting the comparison
 
-At `Re = 100`, the flow is easier to resolve. Good agreement can be obtained on moderate meshes such as `N = 64`.
+The included results show the expected pattern:
 
-### Higher Reynolds Number
+- `Re = 100` is resolved reasonably well across the tested meshes.
+- Higher Reynolds numbers need finer grids to reproduce the sharper gradients.
+- The `N = 128` cases give the strongest agreement in this study.
+- Coarse high-Reynolds-number cases are useful for showing under-resolution, but should not be used as final validation cases.
 
-At `Re = 400` and `Re = 1000`, stronger gradients and more complex vortical structures appear. A finer mesh is required.
+Example plots are available in `assets/figures/`, and the numerical errors for every case are listed in `assets/data/study_summary.csv`.
 
-### Coarse Meshes
+## Reference
 
-Coarse meshes such as `N = 32` can be useful for demonstrating trends, but they are not expected to give accurate high-Reynolds-number validation.
-
----
-
-## Recommended Validation Cases
-
-Good cases to show in the README or report:
-
-```text
-N = 64, Re = 100, central, vectorized
-N = 128, Re = 100, central, vectorized
-N = 128, Re = 400, central, vectorized
-N = 128, Re = 1000, central, vectorized
-```
-
-These cases better demonstrate the solver's validation behavior on sufficiently resolved meshes.
-
----
-
-## Important Interpretation
-
-A failed validation case does not automatically mean the solver is wrong.
-
-For example:
-
-```text
-N = 32, Re = 1000
-```
-
-is likely under-resolved. The larger error is mainly a mesh-resolution issue, not necessarily a coding error.
-
-This is an important CFD conclusion: mesh quality and resolution directly affect validation accuracy.
+Ghia, U., Ghia, K. N., & Shin, C. T. (1982). *High-Re solutions for incompressible flow using the Navier-Stokes equations and a multigrid method*. Journal of Computational Physics, 48(3), 387–411.
