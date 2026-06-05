@@ -2,6 +2,7 @@
 
 [![MATLAB](https://img.shields.io/badge/MATLAB-base%20MATLAB-orange.svg)](https://www.mathworks.com/products/matlab.html)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Portfolio](https://img.shields.io/badge/Portfolio-kandil2001.github.io-2ea44f.svg)](https://kandil2001.github.io)
 
 I built this project to get closer to the numerical side of CFD instead of treating the solver as a black box. It solves the two-dimensional incompressible lid-driven cavity problem with a pressure-correction method and compares several implementation choices.
 
@@ -41,14 +42,9 @@ The figures below are from `N = 64`, `Re = 100`, central differencing, RBGS, and
 
 The solver uses the non-dimensional incompressible Navier-Stokes equations:
 
-```math
-\nabla \cdot \mathbf{u} = 0
-```
-
-```math
-\frac{\partial \mathbf{u}}{\partial t}
-+ (\mathbf{u}\cdot\nabla)\mathbf{u}
-= -\nabla p + \frac{1}{Re}\nabla^2 \mathbf{u}
+```text
+Continuity:         ∇ · u = 0
+Momentum equation:  ∂u/∂t + (u · ∇)u = −∇p + (1/Re)∇²u
 ```
 
 At each outer iteration, the code predicts a velocity field, solves a Poisson equation for the pressure correction, corrects the velocity, and checks the velocity and continuity residuals. More detail is available in [docs/METHODOLOGY.md](docs/METHODOLOGY.md).
@@ -131,6 +127,6 @@ Ghia, U., Ghia, K. N., & Shin, C. T. (1982). *High-Re solutions for incompressib
 
 ## Author
 
-Ahmed Kandil — [GitHub](https://github.com/Kandil2001) · [LinkedIn](https://www.linkedin.com/in/ahmed-kandil03/)
+Ahmed Kandil — [Portfolio Website](https://kandil2001.github.io) · [GitHub](https://github.com/Kandil2001) · [LinkedIn](https://www.linkedin.com/in/ahmed-kandil03/)
 
 Released under the [MIT License](LICENSE).
