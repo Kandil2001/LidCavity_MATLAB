@@ -10,6 +10,8 @@
 
 A two-dimensional incompressible-flow solver for the classical lid-driven cavity benchmark. I built this project to work directly with pressure–velocity coupling, discretization, convergence behaviour, and validation rather than treating the CFD solver as a black box.
 
+This solver is the reference implementation for [Lid Cavity Evolution](https://github.com/Kandil2001/Lid-Cavity-Evolution), an ongoing comparison of MATLAB, Python, C, C++, MPI, OpenMP, CUDA, and OpenFOAM implementations under a shared benchmark specification.
+
 <p align="center">
   <img src="assets/figures/readme_overview.png" alt="Overview of the lid-driven cavity results" width="900">
 </p>
