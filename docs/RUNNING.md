@@ -1,28 +1,33 @@
 # Running the code
 
-## Requirements
+Run the scripts from the repository root so MATLAB can add the required folders correctly.
 
-The project uses MATLAB scripts and base MATLAB plotting functions. Run the scripts from the repository root so that the relative paths are added correctly.
+Generated data and figures are written to:
 
-Generated output is written to `results/data/` and `results/figures/`. These folders are kept in the repository, but their generated contents are ignored by Git.
+```text
+results/data/
+results/figures/
+```
 
-## Available run modes
+The folders are kept in the repository, but their generated contents are ignored by Git.
 
-### Quick study
+## Run modes
+
+### Quick check
 
 ```matlab
 main_quick
 ```
 
-This is the best starting point after cloning the repository or changing a solver function. It uses smaller meshes and fewer Reynolds numbers than the full study, but it still compares both schemes, pressure solvers, and implementations.
+Use this after cloning the repository or changing a solver function. It runs a reduced study while still comparing both convection schemes, pressure solvers, and implementations.
 
-### Medium study
+### Intermediate study
 
 ```matlab
 main_medium
 ```
 
-This runs more cases without including the `N = 128` mesh.
+This runs more cases but does not include the `N = 128` mesh.
 
 ### Full study
 
@@ -30,9 +35,9 @@ This runs more cases without including the `N = 128` mesh.
 main
 ```
 
-This runs all 72 combinations. It can take a long time because each case may use thousands of outer iterations and many pressure iterations.
+This runs all 72 combinations. It can take a long time because some cases require thousands of outer iterations and many pressure iterations.
 
-Linux shell wrappers are included for the same three modes:
+Linux shell wrappers are also included:
 
 ```bash
 ./run_quick.sh
@@ -40,45 +45,45 @@ Linux shell wrappers are included for the same three modes:
 ./run.sh
 ```
 
-The wrappers assume the `matlab` command is available in the shell path.
+They require the `matlab` command to be available in the shell path.
 
-## Running one case
+## Running one editable case
 
-For a small editable example, open:
+Open and run:
 
 ```matlab
 studies/run_single_case.m
 ```
 
-The mesh, Reynolds number, convection scheme, pressure solver, and implementation are defined near the top of that file.
+The mesh, Reynolds number, convection scheme, pressure solver, and implementation are defined near the top of the file.
 
-`studies/run_best_validation_case.m` runs the representative `N = 64`, `Re = 100`, central-differencing case used in the README.
+`studies/run_best_validation_case.m` runs the representative `N = 64`, `Re = 100`, central-differencing case shown in the README.
 
-## Changing the study
+## Changing the setup
 
 Most settings are collected in `default_config.m`, including:
 
-- mesh sizes and Reynolds numbers,
+- meshes and Reynolds numbers,
 - convergence tolerances,
 - relaxation factors,
 - pressure-solver limits,
-- validation thresholds,
-- figure output settings.
+- validation limits,
+- figure-output settings.
 
-The quick and medium scripts override a few of these values to reduce runtime.
+The quick and medium scripts override some of these values to reduce runtime.
 
-## Main outputs
+## Output files
 
-The parameter-study scripts create:
+The parameter study creates:
 
 - one `.mat` file per case,
-- a CSV and MAT summary table,
+- CSV and MAT summary tables,
 - residual and pressure-residual histories,
 - velocity, pressure, vorticity, streamline, and vector plots,
-- Ghia centerline comparison plots,
+- Ghia centreline-comparison plots,
 - study-level runtime and error comparisons.
 
-Selected output from the completed study is copied to `assets/` so it is visible on GitHub without committing every generated file.
+Selected figures and the published summary are copied to `assets/` so they remain visible on GitHub.
 
 ## Common issues
 
@@ -88,11 +93,11 @@ Start MATLAB in the repository root and run one of the main scripts. They add `c
 
 ### A case reaches `maxIter`
 
-This means the strict outer stopping criteria were not met before the configured limit. Check the residual histories, mass imbalance, validation error, and flow plots together. Do not use the validation flag alone as proof of convergence.
+The outer stopping criteria were not met before the configured limit. Check the residual history, mass imbalance, validation error, and flow plots together. A low validation error alone does not prove numerical convergence.
 
 ### The full study takes too long
 
-Use `main_quick` first. The RBGS and `N = 128` combinations are especially expensive in the included setup.
+Start with `main_quick`. The `N = 128` and RBGS cases are the most expensive in the included setup.
 
 ### Generated figures do not appear on GitHub
 
