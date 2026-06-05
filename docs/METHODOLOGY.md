@@ -1,12 +1,10 @@
 # Methodology
 
-This note describes the numerical choices used in the solver and the reasoning behind the comparisons in the study.
-
 ## Problem setup
 
-The domain is a unit square filled with an incompressible fluid. The top wall moves from left to right with a non-dimensional speed of `1`, while the other three walls are stationary. No-slip and no-penetration conditions are applied at every wall.
+The domain is a unit square filled with an incompressible fluid. The top wall moves from left to right with a non-dimensional speed of `1`; the other walls remain stationary. No-slip and no-penetration conditions are applied at all walls.
 
-The non-dimensional governing equations are:
+The solver uses the non-dimensional equations:
 
 ```text
 Continuity:         ∇ · u = 0
@@ -15,30 +13,34 @@ Momentum equation:  ∂u/∂t + (u · ∇)u = −∇p + (1/Re)∇²u
 
 The Reynolds number is based on the lid velocity and cavity length.
 
-## Grid and discretization
+## Grid and spatial discretization
 
-The code uses a structured Cartesian collocated grid. Velocity and pressure are stored at the same grid locations. Spatial derivatives are calculated with finite differences.
+Velocity and pressure are stored on a structured Cartesian collocated grid. Spatial derivatives are calculated with finite differences.
 
 Two convection schemes are available:
 
-- **Upwind:** more robust on coarse meshes, but adds numerical diffusion.
-- **Central:** less diffusive and usually closer to the benchmark on a sufficiently fine mesh, but more sensitive to under-resolution.
+- **Upwind:** more stable on coarse meshes, but more diffusive.
+- **Central:** less diffusive, but more sensitive to mesh resolution.
 
-Diffusion and pressure gradients use central differences.
+Diffusion terms and pressure gradients use central differences.
 
 ## Pressure-correction loop
 
-The solver follows a SIMPLE-style pressure-correction sequence:
+The steady solution is approached through pseudo-time stepping. Each outer iteration follows this sequence:
 
 1. Apply the velocity boundary conditions.
-2. Predict intermediate velocities from the momentum equations.
-3. Calculate the divergence of the predicted field.
+2. Predict the intermediate velocity field.
+3. Calculate its divergence.
 4. Solve the pressure-correction Poisson equation.
-5. Correct the velocity field.
-6. Update pressure with under-relaxation.
-7. Calculate residuals and repeat.
+5. Correct velocity and pressure.
+6. Record residuals and continue until the stopping criteria or iteration limit is reached.
 
-The momentum predictor is available in two forms. `momentum_predictor_loop.m` is easier to follow cell by cell, while `momentum_predictor_vectorized.m` performs the same calculation using MATLAB array operations. Keeping both versions made it possible to check numerical consistency and compare runtime.
+The momentum predictor is implemented twice:
+
+- `momentum_predictor_loop.m` follows the equations cell by cell and is easier to inspect.
+- `momentum_predictor_vectorized.m` performs the same operations with MATLAB arrays.
+
+Keeping both versions makes it possible to compare runtime while checking that they produce the same numerical result.
 
 ## Pressure solvers
 
@@ -47,34 +49,34 @@ The pressure-correction equation can be solved with:
 - `RBGS`: red-black Gauss-Seidel
 - `RBSOR`: red-black successive over-relaxation
 
-RBSOR uses an automatically estimated relaxation factor, limited to a safe range in `default_config.m`. The pressure solver checks the residual of the Poisson equation rather than only checking how much the pressure correction changed between iterations.
+For RBSOR, the relaxation factor is estimated from the grid size and limited by the bounds in `default_config.m`. The pressure solver is stopped using the residual of the Poisson equation.
 
 ## Time step and relaxation
 
-Although the target problem is steady, the code advances through pseudo-time steps. The time step is limited by convection, diffusion, and a configured maximum value. Velocity and pressure relaxation factors are also set in `default_config.m`.
+The pseudo-time step is limited by convection, diffusion, and the configured maximum value. Velocity and pressure under-relaxation factors are also defined in `default_config.m`.
 
-These settings were chosen to keep the broad parameter study stable. They are not claimed to be optimal for every mesh and Reynolds number.
+These settings were selected to keep the full parameter study stable; they are not necessarily optimal for every individual case.
 
-## Residuals and stopping criteria
+## Residuals
 
-The code records:
+The solver records:
 
 - changes in the horizontal and vertical velocity fields,
-- a normalized mass-imbalance residual,
+- normalized mass imbalance,
 - raw velocity divergence,
 - pressure-solver iterations and relative residuals.
 
-The mass residual and velocity residuals are used for the outer convergence check. Raw divergence is kept as an additional diagnostic.
+The velocity changes and mass imbalance are used for the outer stopping check. Raw divergence is retained as an additional diagnostic.
 
 ## Validation
 
-For `Re = 100`, `400`, and `1000`, the computed centerline velocities are interpolated to the locations reported by Ghia et al. The code then calculates L2 and maximum errors for:
+For `Re = 100`, `400`, and `1000`, the computed centreline velocities are interpolated to the sample locations reported by Ghia et al. The code calculates L2 and maximum errors for:
 
 - `u(y)` at `x = 0.5`
 - `v(x)` at `y = 0.5`
 
-The validation thresholds are study-specific values stored in `default_config.m`. See [VALIDATION.md](VALIDATION.md) for how I interpret them.
+The limits used to classify the cases are stored in `default_config.m` and discussed in [VALIDATION.md](VALIDATION.md).
 
-## Scope of the method
+## Scope
 
-The code is useful for studying pressure correction, numerical diffusion, mesh effects, and MATLAB performance. It is not intended to reproduce all features of a production finite-volume solver. In particular, the collocated formulation does not include Rhie-Chow interpolation, and the pressure solver is iterative but not multigrid-accelerated.
+The solver is intended for studying the numerical behaviour of the cavity-flow problem. It does not include Rhie-Chow interpolation, multigrid acceleration, turbulence modelling, or adaptive meshing.
