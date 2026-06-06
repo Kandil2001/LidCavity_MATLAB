@@ -1,6 +1,7 @@
-% MAIN Run the full 72-case parameter study.
+% MAIN Run the full 72-case MATLAB parameter study.
 
 clear; clc; close all;
+addpath("startup");
 setup_project();
 
 cfg = default_config();
