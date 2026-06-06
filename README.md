@@ -10,9 +10,9 @@
 
 A MATLAB implementation of the two-dimensional lid-driven cavity benchmark.
 
-This repository is one part of a larger CFD benchmark series where I solve the same physical problem with different tools and implementation styles. The goal is to keep the setup consistent, then compare accuracy, runtime, code structure, and scalability across MATLAB, C++, C, Python, OpenMP, MPI, CUDA, and OpenFOAM.
+This repository is one part of a larger project where the same CFD benchmark will be implemented and compared in MATLAB, C++, C, Python, OpenMP, MPI, CUDA, and OpenFOAM. The goal is to keep the physical setup the same across all versions, then compare accuracy, runtime, implementation style, and scalability.
 
-This version is the **MATLAB reference implementation**. I use it to develop the numerical method, test the post-processing workflow, and compare loop-based and vectorized MATLAB code before moving the same benchmark to lower-level and parallel implementations.
+This version is the **MATLAB reference implementation**. It is useful for developing the numerical method, checking the post-processing workflow, and comparing loop-based and vectorized MATLAB code before moving to lower-level and parallel implementations.
 
 ## What is included
 
@@ -32,9 +32,9 @@ The full parameter study runs 72 combinations:
 
 ## Representative result
 
-For the whole benchmark series, I want the result layout to stay the same: flow-field plots on one side and Ghia centreline validation on the other. This makes the MATLAB, C++, and later OpenMP/MPI/CUDA/OpenFOAM versions easier to compare.
+For all implementations in this benchmark series, I want to keep the result layout the same: flow-field plots on one side and Ghia centreline validation on the other. This makes the MATLAB, C++, and later OpenMP/MPI/CUDA/OpenFOAM versions easier to compare.
 
-The MATLAB example below uses `N = 64`, `Re = 100`, central differencing, RBGS, and the vectorized momentum predictor.
+This MATLAB case uses `N = 64`, `Re = 100`, central differencing, RBGS, and the vectorized momentum predictor.
 
 | Flow field | Centreline validation |
 |---|---|
@@ -69,15 +69,26 @@ main_medium   % study without the N = 128 mesh
 main          % full 72-case study
 ```
 
+Linux shell wrappers are also available:
+
+```bash
+bash scripts/run_quick.sh
+bash scripts/run_medium.sh
+bash scripts/run.sh
+```
+
 Generated files are written to `results/data/` and `results/figures/`. Detailed instructions are in [docs/RUNNING.md](docs/RUNNING.md).
 
 ## Repository layout
 
 ```text
+config/        default solver and study settings
+startup/       path setup and output-folder creation
 core/          solver routines
 studies/       single-case and parameter-study runners
 validation/    Ghia data and error calculations
 post/          plotting and result export
+scripts/       shell wrappers for MATLAB runs
 assets/        selected figures and published summary data
 docs/          methodology, results, validation, and running notes
 results/       generated output; ignored by Git
@@ -97,7 +108,7 @@ This is an educational solver, not a replacement for a production CFD package. I
 
 - Improve convergence control and stopping criteria
 - Improve the high-Reynolds-number cases
-- Use this MATLAB version as the reference while adding the C++, C, Python, OpenMP, MPI, CUDA, and OpenFOAM versions
+- Use this MATLAB version as the reference case while adding the C++, C, Python, OpenMP, MPI, CUDA, and OpenFOAM versions
 - Keep the result layout consistent across all implementations
 - Build one comparison table for accuracy, runtime, and speedup across the full benchmark suite
 
