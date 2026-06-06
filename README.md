@@ -8,13 +8,11 @@
   </a>
 </p>
 
-A two-dimensional incompressible-flow solver for the classical lid-driven cavity benchmark. I built this project to work directly with pressure–velocity coupling, discretization, convergence behaviour, and validation rather than treating the CFD solver as a black box.
+A two-dimensional incompressible-flow solver for the classical lid-driven cavity benchmark, written in MATLAB.
 
-This solver is the reference implementation for [Lid Cavity Evolution](https://github.com/Kandil2001/Lid-Cavity-Evolution), an ongoing comparison of MATLAB, Python, C, C++, MPI, OpenMP, CUDA, and OpenFOAM implementations under a shared benchmark specification.
+I built this project to work directly with pressure-velocity coupling, discretization, convergence behaviour, and validation rather than treating the CFD solver as a black box. The code includes both loop-based and vectorized momentum-predictor versions so the numerical setup and implementation style can be compared.
 
-<p align="center">
-  <img src="assets/figures/readme_overview.png" alt="Overview of the lid-driven cavity results" width="900">
-</p>
+This repository is part of the same benchmark series as [LidCavity_CPP](https://github.com/Kandil2001/LidCavity_CPP), but it is written and presented as its own MATLAB implementation.
 
 ## What is included
 
@@ -22,11 +20,11 @@ This solver is the reference implementation for [Lid Cavity Evolution](https://g
 - Pseudo-transient pressure-correction algorithm
 - Loop-based and vectorized momentum predictors
 - First-order upwind and central convection schemes
-- Red-black Gauss–Seidel and red-black SOR pressure solvers
+- Red-black Gauss-Seidel and red-black SOR pressure solvers
 - Validation against Ghia et al. centreline velocity data
 - Automated field plots, validation plots, residual histories, and CSV summaries
 
-The default parameter study runs 72 combinations:
+The full parameter study runs 72 combinations:
 
 ```text
 3 meshes × 3 Reynolds numbers × 2 schemes × 2 pressure solvers × 2 implementations
@@ -34,7 +32,7 @@ The default parameter study runs 72 combinations:
 
 ## Representative result
 
-This case uses `N = 64`, `Re = 100`, central differencing, RBGS, and the vectorized momentum predictor.
+The case below uses `N = 64`, `Re = 100`, central differencing, RBGS, and the vectorized momentum predictor.
 
 | Flow field | Centreline validation |
 |---|---|
@@ -43,15 +41,15 @@ This case uses `N = 64`, `Re = 100`, central differencing, RBGS, and the vectori
 
 ## Numerical approach
 
-The solver advances the non-dimensional incompressible Navier–Stokes equations through pseudo-time. At each outer iteration it predicts the velocity field, solves a pressure-correction Poisson equation, corrects velocity and pressure, and records convergence diagnostics.
+The solver advances the non-dimensional incompressible Navier-Stokes equations through pseudo-time. At each outer iteration it predicts the velocity field, solves a pressure-correction Poisson equation, corrects velocity and pressure, reapplies the wall boundary conditions, and records convergence diagnostics.
 
 A more detailed description is available in [docs/METHODOLOGY.md](docs/METHODOLOGY.md).
 
 ## Study observations
 
 - `44/72` cases met the selected Ghia centreline-error limits.
-- Every case reached its configured outer-iteration limit before satisfying the strict stopping criteria, so the results are not described as fully converged.
-- All `N = 128` cases met the selected validation limits; coarse high-Reynolds-number cases were less accurate.
+- All `N = 128` cases met the selected validation limits.
+- Coarse high-Reynolds-number cases were less accurate, which is expected for this setup.
 - RBSOR reduced pressure-solver iterations and runtime compared with RBGS.
 - Vectorizing the momentum predictor had a limited effect on total runtime because the pressure solve remained the main cost.
 
@@ -83,13 +81,26 @@ docs/          methodology, results, validation, and running notes
 results/       generated output; ignored by Git
 ```
 
+## Requirements
+
+This project uses base MATLAB scripts and functions.
+
+No external MATLAB toolboxes are required for the main solver workflow.
+
 ## Limitations
 
-This is an educational solver, not a replacement for a production CFD package. It uses a collocated grid without Rhie–Chow interpolation and an iterative pressure solver without multigrid acceleration. The convergence strategy and pressure–velocity treatment are the main areas for further improvement.
+This is an educational solver, not a replacement for a production CFD package. It uses a collocated grid without Rhie-Chow interpolation and an iterative pressure solver without multigrid acceleration. The convergence strategy and pressure-velocity treatment are the main areas for further improvement.
+
+## Next steps
+
+- Improve convergence control and stopping criteria
+- Improve the high-Reynolds-number cases
+- Clean the result comparison tables
+- Use this MATLAB version as a reference when adding faster implementations in C++, OpenMP, MPI, or CUDA
 
 ## Reference
 
-Ghia, U., Ghia, K. N., & Shin, C. T. (1982). *High-Re solutions for incompressible flow using the Navier-Stokes equations and a multigrid method*. Journal of Computational Physics, 48(3), 387–411.
+Ghia, U., Ghia, K. N., & Shin, C. T. (1982). *High-Re solutions for incompressible flow using the Navier-Stokes equations and a multigrid method*. Journal of Computational Physics, 48(3), 387-411.
 
 ## Author
 
