@@ -1,6 +1,7 @@
-% MAIN_QUICK Run a reduced study for a fast solver check.
+% MAIN_QUICK Run a reduced MATLAB study for a fast solver check.
 
 clear; clc; close all;
+addpath("startup");
 setup_project();
 
 cfg = default_config();
