@@ -1,7 +1,8 @@
-% MAIN_MEDIUM Run the study without the N = 128 mesh.
+% MAIN_MEDIUM Run the MATLAB study without the N = 128 mesh.
 % 48 simulations: [32,64] x [100,400,1000] x 2 schemes x 2 pressure solvers x 2 implementations.
 
 clear; clc; close all;
+addpath("startup");
 setup_project();
 
 cfg = default_config();
