@@ -8,11 +8,11 @@
   </a>
 </p>
 
-A two-dimensional incompressible-flow solver for the classical lid-driven cavity benchmark, written in MATLAB.
+A MATLAB implementation of the two-dimensional lid-driven cavity benchmark.
 
-I built this project to work directly with pressure-velocity coupling, discretization, convergence behaviour, and validation rather than treating the CFD solver as a black box. The code includes both loop-based and vectorized momentum-predictor versions so the numerical setup and implementation style can be compared.
+This repository is one part of a larger project where the same CFD benchmark will be implemented and compared in MATLAB, C++, C, Python, OpenMP, MPI, CUDA, and OpenFOAM. The goal is to keep the physical setup the same across all versions, then compare accuracy, runtime, implementation style, and scalability.
 
-This repository is part of the same benchmark series as [LidCavity_CPP](https://github.com/Kandil2001/LidCavity_CPP), but it is written and presented as its own MATLAB implementation.
+This version is the **MATLAB reference implementation**. It is useful for developing the numerical method, checking the post-processing workflow, and comparing loop-based and vectorized MATLAB code before moving to lower-level and parallel implementations.
 
 ## What is included
 
@@ -32,7 +32,9 @@ The full parameter study runs 72 combinations:
 
 ## Representative result
 
-The case below uses `N = 64`, `Re = 100`, central differencing, RBGS, and the vectorized momentum predictor.
+For all implementations in this benchmark series, I want to keep the result layout the same: flow-field plots on one side and Ghia centreline validation on the other. This makes the MATLAB, C++, and later OpenMP/MPI/CUDA/OpenFOAM versions easier to compare.
+
+This MATLAB case uses `N = 64`, `Re = 100`, central differencing, RBGS, and the vectorized momentum predictor.
 
 | Flow field | Centreline validation |
 |---|---|
@@ -95,8 +97,9 @@ This is an educational solver, not a replacement for a production CFD package. I
 
 - Improve convergence control and stopping criteria
 - Improve the high-Reynolds-number cases
-- Clean the result comparison tables
-- Use this MATLAB version as a reference when adding faster implementations in C++, OpenMP, MPI, or CUDA
+- Use this MATLAB version as the reference case while adding the C++, C, Python, OpenMP, MPI, CUDA, and OpenFOAM versions
+- Keep the result layout consistent across all implementations
+- Build one comparison table for accuracy, runtime, and speedup across the full benchmark suite
 
 ## Reference
 
