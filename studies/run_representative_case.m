@@ -1,9 +1,11 @@
 function result = run_representative_case()
 %RUN_REPRESENTATIVE_CASE Run the example case shown in the README.
 
-addpath("core");
-addpath("validation");
-addpath("post");
+addpath(fullfile("..", "startup"));
+if exist("setup_project", "file") ~= 2
+    addpath("startup");
+end
+setup_project();
 
 cfg = default_config();
 cfg.meshes = 64;
