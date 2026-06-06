@@ -1,9 +1,11 @@
 function result = run_single_case()
 %RUN_SINGLE_CASE Fast test case for debugging.
 
-addpath("core");
-addpath("validation");
-addpath("post");
+addpath(fullfile("..", "startup"));
+if exist("setup_project", "file") ~= 2
+    addpath("startup");
+end
+setup_project();
 
 cfg = default_config();
 cfg.maxIter = 500;
