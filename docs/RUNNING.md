@@ -37,12 +37,12 @@ main
 
 This runs all 72 combinations. It can take a long time because some cases require thousands of outer iterations and many pressure iterations.
 
-Linux shell wrappers are also included:
+Linux shell wrappers are also included in `scripts/`:
 
 ```bash
-./run_quick.sh
-./run_medium.sh
-./run.sh
+bash scripts/run_quick.sh
+bash scripts/run_medium.sh
+bash scripts/run.sh
 ```
 
 They require the `matlab` command to be available in the shell path.
@@ -61,7 +61,13 @@ The mesh, Reynolds number, convection scheme, pressure solver, and implementatio
 
 ## Changing the setup
 
-Most settings are collected in `default_config.m`, including:
+Most settings are collected in:
+
+```text
+config/default_config.m
+```
+
+This includes:
 
 - meshes and Reynolds numbers,
 - convergence tolerances,
@@ -89,7 +95,7 @@ Selected figures and the published summary are copied to `assets/` so they remai
 
 ### MATLAB cannot find a function
 
-Start MATLAB in the repository root and run one of the main scripts. They add `core/`, `studies/`, `validation/`, and `post/` to the path.
+Start MATLAB in the repository root and run one of the main scripts. The main scripts call `startup/setup_project.m`, which adds the required project folders to the path.
 
 ### A case reaches `maxIter`
 
