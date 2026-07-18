@@ -1,30 +1,29 @@
 # Lid-Driven Cavity Flow Solver in MATLAB
 
 <p align="center">
+  <img src="https://img.shields.io/badge/Status-Completed-brightgreen.svg" alt="Completed">
   <img src="https://img.shields.io/badge/MATLAB-base%20MATLAB-orange.svg" alt="MATLAB">
-  <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License">
+  <img src="https://img.shields.io/badge/License-MIT-lightgrey.svg" alt="MIT License">
   <a href="https://kandil2001.github.io/">
     <img src="https://img.shields.io/badge/Portfolio-kandil2001.github.io-2ea44f.svg" alt="Portfolio">
   </a>
 </p>
 
-A MATLAB implementation of the two-dimensional lid-driven cavity benchmark.
+A completed MATLAB implementation and parameter study of the two-dimensional lid-driven cavity benchmark.
 
-This repository is one part of a larger project where the same CFD benchmark will be implemented and compared in MATLAB, C++, C, Python, OpenMP, MPI, CUDA, and OpenFOAM. The goal is to keep the physical setup the same across all versions, then compare accuracy, runtime, implementation style, and scalability.
+This repository is the MATLAB reference implementation for a larger project that compares the same CFD problem across MATLAB, C++, C, Python, OpenMP, MPI, CUDA, and OpenFOAM-oriented workflows. The physical setup is kept consistent so that numerical behavior, accuracy, runtime, implementation style, and scalability can be compared.
 
-This version is the **MATLAB reference implementation**. It is useful for developing the numerical method, checking the post-processing workflow, and comparing loop-based and vectorized MATLAB code before moving to lower-level and parallel implementations.
+## What the project contains
 
-## What is included
+- structured collocated Cartesian grid
+- pseudo-transient pressure-correction algorithm
+- loop-based and vectorized momentum predictors
+- first-order upwind and central convection schemes
+- red-black Gauss-Seidel and red-black SOR pressure solvers
+- Ghia centerline comparison
+- automated field plots, residual histories, validation figures, and CSV summaries
 
-- Structured collocated Cartesian grid
-- Pseudo-transient pressure-correction algorithm
-- Loop-based and vectorized momentum predictors
-- First-order upwind and central convection schemes
-- Red-black Gauss-Seidel and red-black SOR pressure solvers
-- Validation against Ghia et al. centreline velocity data
-- Automated field plots, validation plots, residual histories, and CSV summaries
-
-The full parameter study runs 72 combinations:
+The completed parameter study contains 72 configured combinations:
 
 ```text
 3 meshes × 3 Reynolds numbers × 2 schemes × 2 pressure solvers × 2 implementations
@@ -32,30 +31,28 @@ The full parameter study runs 72 combinations:
 
 ## Representative result
 
-For all implementations in this benchmark series, I want to keep the result layout the same: flow-field plots on one side and Ghia centreline validation on the other. This makes the MATLAB, C++, and later OpenMP/MPI/CUDA/OpenFOAM versions easier to compare.
+This case uses `N = 64`, `Re = 100`, central differencing, RBGS, and the vectorized momentum predictor.
 
-This MATLAB case uses `N = 64`, `Re = 100`, central differencing, RBGS, and the vectorized momentum predictor.
-
-| Flow field | Centreline validation |
+| Flow field | Centerline comparison |
 |---|---|
 | ![Streamlines](assets/figures/case_029_N64_Re100_central_RBGS_vectorized_streamlines.png) | ![Ghia u validation](assets/figures/case_029_N64_Re100_central_RBGS_vectorized_ghia_u.png) |
 | ![Velocity magnitude](assets/figures/case_029_N64_Re100_central_RBGS_vectorized_speed.png) | ![Ghia v validation](assets/figures/case_029_N64_Re100_central_RBGS_vectorized_ghia_v.png) |
 
 ## Numerical approach
 
-The solver advances the non-dimensional incompressible Navier-Stokes equations through pseudo-time. At each outer iteration it predicts the velocity field, solves a pressure-correction Poisson equation, corrects velocity and pressure, reapplies the wall boundary conditions, and records convergence diagnostics.
+The solver advances the nondimensional incompressible Navier-Stokes equations through pseudo-time. Each outer iteration predicts the velocity field, solves a pressure-correction Poisson equation, corrects velocity and pressure, reapplies wall boundary conditions, and records convergence diagnostics.
 
-A more detailed description is available in [docs/METHODOLOGY.md](docs/METHODOLOGY.md).
+A detailed description is available in [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md).
 
 ## Study observations
 
-- `44/72` cases met the selected Ghia centreline-error limits.
-- All `N = 128` cases met the selected validation limits.
-- Coarse high-Reynolds-number cases were less accurate, which is expected for this setup.
-- RBSOR reduced pressure-solver iterations and runtime compared with RBGS.
-- Vectorizing the momentum predictor had a limited effect on total runtime because the pressure solve remained the main cost.
+- `44/72` cases met the selected Ghia centerline-error thresholds
+- all `N = 128` cases met the selected validation thresholds
+- coarse high-Reynolds-number cases were less accurate
+- RBSOR reduced pressure-solver iterations and runtime compared with RBGS
+- vectorizing the momentum predictor had a limited effect on total runtime because the pressure solve remained the main cost
 
-The validation limits are practical comparison thresholds, not a replacement for a formal verification or grid-independence study. See [docs/RESULTS.md](docs/RESULTS.md) for the full discussion.
+The selected validation thresholds are practical comparison limits, not a substitute for a formal verification, grid-convergence, or uncertainty study. See [`docs/RESULTS.md`](docs/RESULTS.md) for the detailed discussion.
 
 ![Pressure solver comparison](assets/figures/study_pressure_solver_iterations.png)
 
@@ -66,7 +63,7 @@ Clone the repository, open MATLAB in the repository root, and run one of:
 ```matlab
 main_quick    % reduced check
 main_medium   % study without the N = 128 mesh
-main          % full 72-case study
+main          % complete 72-case configuration
 ```
 
 Linux shell wrappers are also available:
@@ -77,9 +74,9 @@ bash scripts/run_medium.sh
 bash scripts/run.sh
 ```
 
-Generated files are written to `results/data/` and `results/figures/`. Detailed instructions are in [docs/RUNNING.md](docs/RUNNING.md).
+Generated files are written to `results/data/` and `results/figures/`. Detailed instructions are available in [`docs/RUNNING.md`](docs/RUNNING.md).
 
-## Repository layout
+## Repository structure
 
 ```text
 config/        default solver and study settings
@@ -96,21 +93,21 @@ results/       generated output; ignored by Git
 
 ## Requirements
 
-This project uses base MATLAB scripts and functions.
+The project uses base MATLAB scripts and functions. No external MATLAB toolboxes are required for the main solver workflow.
 
-No external MATLAB toolboxes are required for the main solver workflow.
+## Scope and limitations
 
-## Limitations
+This is a completed educational solver and study, not a replacement for a production CFD package.
 
-This is an educational solver, not a replacement for a production CFD package. It uses a collocated grid without Rhie-Chow interpolation and an iterative pressure solver without multigrid acceleration. The convergence strategy and pressure-velocity treatment are the main areas for further improvement.
+Documented limitations include:
 
-## Next steps
+- collocated grid without Rhie-Chow interpolation
+- iterative pressure solver without multigrid acceleration
+- practical validation thresholds rather than a formal verification study
+- high-Reynolds-number cases that require stronger convergence control
+- no uncertainty quantification
 
-- Improve convergence control and stopping criteria
-- Improve the high-Reynolds-number cases
-- Use this MATLAB version as the reference case while adding the C++, C, Python, OpenMP, MPI, CUDA, and OpenFOAM versions
-- Keep the result layout consistent across all implementations
-- Build one comparison table for accuracy, runtime, and speedup across the full benchmark suite
+The code is kept as the completed MATLAB reference implementation for the broader work-in-progress multi-language comparison project.
 
 ## Reference
 
@@ -118,6 +115,6 @@ Ghia, U., Ghia, K. N., & Shin, C. T. (1982). *High-Re solutions for incompressib
 
 ## Author
 
-Ahmed Kandil — [Portfolio](https://kandil2001.github.io/) · [LinkedIn](https://www.linkedin.com/in/ahmed-kandil03/)
+Ahmed Kandil — [Portfolio](https://kandil2001.github.io/) · [LinkedIn](https://www.linkedin.com/in/ahmed-kandil03/) · [ORCID](https://orcid.org/0009-0007-2724-4565)
 
 Released under the [MIT License](LICENSE).
