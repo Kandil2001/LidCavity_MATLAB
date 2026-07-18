@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this software or study in academic work, please cite it using this metadata."
+title: "Lid-Driven Cavity Flow Solver in MATLAB"
+type: software
+authors:
+  - family-names: Kandil
+    given-names: Ahmed
+    orcid: "https://orcid.org/0009-0007-2724-4565"
+repository-code: "https://github.com/Kandil2001/LidCavity_MATLAB"
+url: "https://kandil2001.github.io/"
+license: MIT
+keywords:
+  - computational fluid dynamics
+  - lid-driven cavity
+  - pressure correction
+  - MATLAB
+  - numerical methods
+  - Ghia benchmark
