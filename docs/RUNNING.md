@@ -9,7 +9,7 @@ results/data/
 results/figures/
 ```
 
-The folders are kept in the repository, but their generated contents are ignored by Git.
+The folders remain in the repository, but their generated contents are ignored by Git.
 
 ## Run modes
 
@@ -19,7 +19,7 @@ The folders are kept in the repository, but their generated contents are ignored
 main_quick
 ```
 
-Use this after cloning the repository or changing a solver function. It runs a reduced study while still comparing both convection schemes, pressure solvers, and implementations.
+Use this after cloning the repository or changing a solver function. It runs a reduced study while comparing both convection schemes, pressure solvers, and implementations.
 
 ### Intermediate study
 
@@ -27,17 +27,17 @@ Use this after cloning the repository or changing a solver function. It runs a r
 main_medium
 ```
 
-This runs more cases but does not include the `N = 128` mesh.
+This runs more cases without the `N = 128` mesh.
 
-### Full study
+### Complete configured study
 
 ```matlab
 main
 ```
 
-This runs all 72 combinations. It can take a long time because some cases require thousands of outer iterations and many pressure iterations.
+This runs all 72 configured combinations. It can take a long time because some cases require thousands of outer iterations and many pressure iterations.
 
-Linux shell wrappers are also included in `scripts/`:
+Linux shell wrappers are included in `scripts/`:
 
 ```bash
 bash scripts/run_quick.sh
@@ -69,25 +69,25 @@ config/default_config.m
 
 This includes:
 
-- meshes and Reynolds numbers,
-- convergence tolerances,
-- relaxation factors,
-- pressure-solver limits,
-- validation limits,
-- figure-output settings.
+- meshes and Reynolds numbers
+- convergence tolerances
+- relaxation factors
+- pressure-solver limits
+- validation limits
+- figure-output settings
 
-The quick and medium scripts override some of these values to reduce runtime.
+The quick and medium scripts override some values to reduce runtime.
 
 ## Output files
 
 The parameter study creates:
 
-- one `.mat` file per case,
-- CSV and MAT summary tables,
-- residual and pressure-residual histories,
-- velocity, pressure, vorticity, streamline, and vector plots,
-- Ghia centreline-comparison plots,
-- study-level runtime and error comparisons.
+- one `.mat` file per case
+- CSV and MAT summary tables
+- residual and pressure-residual histories
+- velocity, pressure, vorticity, streamline, and vector plots
+- Ghia centerline-comparison plots
+- study-level runtime and error comparisons
 
 Selected figures and the published summary are copied to `assets/` so they remain visible on GitHub.
 
@@ -95,16 +95,16 @@ Selected figures and the published summary are copied to `assets/` so they remai
 
 ### MATLAB cannot find a function
 
-Start MATLAB in the repository root and run one of the main scripts. The main scripts call `startup/setup_project.m`, which adds the required project folders to the path.
+Start MATLAB in the repository root and run one of the main scripts. The scripts call `startup/setup_project.m`, which adds the required folders to the path.
 
 ### A case reaches `maxIter`
 
 The outer stopping criteria were not met before the configured limit. Check the residual history, mass imbalance, validation error, and flow plots together. A low validation error alone does not prove numerical convergence.
 
-### The full study takes too long
+### The complete study takes too long
 
 Start with `main_quick`. The `N = 128` and RBGS cases are the most expensive in the included setup.
 
 ### Generated figures do not appear on GitHub
 
-The contents of `results/` are ignored by Git. Copy only the figures you want to publish into `assets/figures/` and reference those files in the README.
+The contents of `results/` are ignored by Git. Copy only figures intended for publication into `assets/figures/` and reference those files in the README.
