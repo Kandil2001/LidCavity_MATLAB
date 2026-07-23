@@ -1,5 +1,4 @@
-#!/bin/bash
-set -e
-cd "$(dirname "$0")/.."
-mkdir -p results/data results/figures
-matlab -nodisplay -nosplash -r "main_medium; exit"
+#!/usr/bin/env bash
+set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+bash "$SCRIPT_DIR/run_mode.sh" medium
