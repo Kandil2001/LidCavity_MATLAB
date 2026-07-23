@@ -1,83 +1,84 @@
-# Methodology
+# Numerical Methodology
 
-## Problem setup
+## Problem definition
 
-The domain is a unit square filled with an incompressible fluid. The top wall moves from left to right with a nondimensional speed of `1`; the other walls remain stationary. No-slip and no-penetration conditions are applied at all walls.
-
-The solver uses the nondimensional equations:
+The solver models the nondimensional two-dimensional incompressible lid-driven cavity in a unit square. The top wall moves with velocity `U = 1`; the other walls remain stationary. The kinematic viscosity is
 
 ```text
-Continuity:         ∇ · u = 0
-Momentum equation:  ∂u/∂t + (u · ∇)u = −∇p + (1/Re)∇²u
+nu = U L / Re
 ```
 
-The Reynolds number is based on lid velocity and cavity length.
+with `L = 1`.
 
-## Grid and spatial discretization
+## Staggered MAC grid
 
-Velocity and pressure are stored on a structured Cartesian collocated grid. Spatial derivatives are calculated with finite differences.
+The Phase 2 production solver uses a Marker-and-Cell arrangement:
 
-Two convection schemes are available:
+- pressure at cell centers
+- horizontal velocity on vertical cell faces
+- vertical velocity on horizontal cell faces
 
-- **Upwind:** more stable on coarse meshes, but more diffusive
-- **Central:** less diffusive, but more sensitive to mesh resolution
+This removes the checkerboard pressure mode associated with the earlier collocated prototype and makes the pressure gradient, velocity correction, and discrete divergence compatible.
 
-Diffusion terms and pressure gradients use central differences.
+## Projection workflow
 
-## Pressure-correction loop
+Each pseudo-time iteration:
 
-The steady solution is approached through pseudo-time stepping. Each outer iteration:
+1. calculates a stable time step from convection and diffusion limits
+2. predicts face velocities from convection, diffusion, and pressure gradients
+3. calculates cell-centered divergence of the predicted field
+4. removes the mean from the Poisson right-hand side
+5. solves the pressure-correction Poisson equation
+6. corrects face velocities with pressure-correction gradients
+7. updates and normalizes pressure
+8. evaluates all convergence metrics
 
-1. applies velocity boundary conditions
-2. predicts the intermediate velocity field
-3. calculates its divergence
-4. solves the pressure-correction Poisson equation
-5. corrects velocity and pressure
-6. records residuals
-7. continues until the stopping criteria or iteration limit is reached
+## Momentum discretization
 
-The momentum predictor is implemented twice:
+The code supports first-order upwind and second-order central convection. Diffusion uses second-order central differences. Normal velocities are set directly to zero at solid boundary faces. Tangential no-slip conditions are imposed through ghost values; the upper-wall horizontal-velocity ghost value enforces the moving lid.
 
-- `momentum_predictor_loop.m` follows the equations cell by cell
-- `momentum_predictor_vectorized.m` performs equivalent operations with MATLAB arrays
+Two MATLAB implementations are available:
 
-Keeping both versions supports runtime comparison while checking numerical consistency.
+- `vectorized`: array-based momentum prediction
+- `loop`: explicit cell-by-cell momentum prediction
 
-## Pressure solvers
+They share the same pressure solver, projection, convergence checks, and output path.
 
-The pressure-correction equation can be solved with:
+## Pressure correction
 
-- `RBGS`: red-black Gauss-Seidel
-- `RBSOR`: red-black Successive Over-Relaxation
+The pressure-correction equation is solved using red-black Gauss-Seidel (`RBGS`) or red-black successive over-relaxation (`RBSOR`). Missing neighbors at boundaries implement homogeneous normal pressure-gradient conditions through the boundary stencil. The pressure correction and right-hand side are normalized to remove the constant null space.
 
-For RBSOR, the relaxation factor is estimated from grid size and limited by the bounds in `default_config.m`. The pressure solver stops using the relative residual of the Poisson equation.
+Pressure convergence uses the true discrete equation residual. An outer case cannot report convergence while the pressure solve is failing.
 
-## Time step and relaxation
-
-The pseudo-time step is limited by convection, diffusion, and the configured maximum value. Velocity and pressure under-relaxation factors are also defined in `default_config.m`.
-
-These settings were selected to keep the complete parameter study stable; they are not necessarily optimal for every individual case.
-
-## Residuals
+## Strict convergence definition
 
 The solver records:
 
-- changes in horizontal and vertical velocity
-- normalized mass imbalance
-- raw velocity divergence
-- pressure-solver iterations and relative residuals
+- velocity-update `Linf`
+- divergence `Linf`
+- divergence `L2`
+- global boundary mass imbalance
+- pressure-Poisson relative residual
 
-Velocity changes and mass imbalance are used for the outer stopping check. Raw divergence is retained as an additional diagnostic.
+A case reports `converged` only when every configured criterion passes for a required number of consecutive iterations and the minimum iteration count has been reached.
 
-## Validation
+Terminal states are:
 
-For `Re = 100`, `400`, and `1000`, the computed centerline velocities are interpolated to the sample locations reported by Ghia et al. The code calculates `L2` and maximum errors for:
+```text
+converged
+max_iterations
+pressure_not_converged
+stagnated
+diverged
+non_finite
+```
 
-- `u(y)` at `x = 0.5`
-- `v(x)` at `y = 0.5`
+## Continuation
 
-The limits used to classify cases are stored in `default_config.m` and discussed in [`VALIDATION.md`](VALIDATION.md).
+Parameter studies reuse a converged lower-Reynolds-number solution when mesh, convection scheme, pressure solver, and MATLAB implementation remain unchanged. This improves stability and reduces startup cost for `Re = 400` and `Re = 1000`.
 
-## Scope
+## Benchmark comparison
 
-The repository records a completed educational solver and parameter study. It does not include Rhie-Chow interpolation, multigrid acceleration, turbulence modeling, or adaptive meshing.
+Cell-centered velocities are interpolated to `x = 0.5` and `y = 0.5`, then interpolated again to the Ghia sample coordinates. The code reports `L2` and `Linf` errors for `u(y)` and `v(x)`.
+
+This is a numerical benchmark comparison, not experimental validation.

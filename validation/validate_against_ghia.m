@@ -1,12 +1,11 @@
 function metrics = validate_against_ghia(result,cfg)
-%VALIDATE_AGAINST_GHIA Compares centerline profiles to Ghia data if available.
+%VALIDATE_AGAINST_GHIA Compare interpolated centerlines with Ghia data.
 
 if nargin < 2
     cfg = default_config();
 end
 
 data = ghia_data(result.Re);
-
 metrics.available = ~isempty(data);
 metrics.u_L2 = NaN;
 metrics.v_L2 = NaN;
@@ -20,20 +19,23 @@ if isempty(data)
     return;
 end
 
-N = result.N;
-mid = round((N+1)/2);
+u_centerline = zeros(numel(result.y),1);
+for i = 1:numel(result.y)
+    u_centerline(i) = interp1(result.x,result.u(i,:),0.5, ...
+        'linear','extrap');
+end
 
-% Numerical profiles. u at x=0.5 as function of y, v at y=0.5 as function of x.
-u_center = result.u(:,mid);
-v_center = result.v(mid,:);
+v_centerline = zeros(numel(result.x),1);
+for j = 1:numel(result.x)
+    v_centerline(j) = interp1(result.y,result.v(:,j),0.5, ...
+        'linear','extrap');
+end
 
-% Interpolate numerical values onto Ghia sample points.
-u_num = interp1(result.y, u_center, data.y_u, 'linear', 'extrap');
-v_num = interp1(result.x, v_center, data.x_v, 'linear', 'extrap');
+u_num = interp1(result.y,u_centerline,data.y_u,'linear','extrap');
+v_num = interp1(result.x,v_centerline,data.x_v,'linear','extrap');
 
-eu = u_num(:) - data.u(:);
-ev = v_num(:) - data.v(:);
-
+eu = u_num(:)-data.u(:);
+ev = v_num(:)-data.v(:);
 metrics.u_L2 = sqrt(mean(eu.^2));
 metrics.v_L2 = sqrt(mean(ev.^2));
 metrics.u_Linf = max(abs(eu));
@@ -54,5 +56,6 @@ switch result.Re
         metrics.v_limit = inf;
 end
 
-metrics.pass = metrics.u_L2 <= metrics.u_limit && metrics.v_L2 <= metrics.v_limit;
+metrics.pass = metrics.u_L2 <= metrics.u_limit ...
+    && metrics.v_L2 <= metrics.v_limit;
 end
